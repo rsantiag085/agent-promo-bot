@@ -12,7 +12,10 @@ if not API_ID or not API_HASH:
     print("Erro: TELEGRAM_API_ID ou TELEGRAM_API_HASH não encontrados no .env")
     exit(1)
 
-client = TelegramClient('session', int(API_ID), API_HASH)
+# Garante que a pasta de dados exista antes de criar a sessão
+os.makedirs("data", exist_ok=True)
+
+client = TelegramClient('data/session', int(API_ID), API_HASH)
 
 async def main():
     print("Iniciando processo de autenticação do Telegram...")

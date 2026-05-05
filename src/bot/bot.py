@@ -7,6 +7,15 @@ from fastapi import FastAPI, HTTPException
 from typing import List
 from dotenv import load_dotenv
 import uvicorn
+import logging
+
+# Configuração global de logs
+logging.basicConfig(
+    level=logging.INFO,
+    format="[%(asctime)s] - [%(levelname)s] - %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S"
+)
+logger = logging.getLogger(__name__)
 
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
@@ -27,7 +36,9 @@ if not API_ID or not API_HASH:
 PRICE_REGEX = re.compile(r'R\$\s*\d+(?:[.,]\d+)?', re.IGNORECASE)
 URL_REGEX = re.compile(r'(https?://[^\s]+)')
 
-client = TelegramClient('session', int(API_ID), API_HASH)
+# Garante a existência do diretório de dados
+os.makedirs("data", exist_ok=True)
+client = TelegramClient('data/session', int(API_ID), API_HASH)
 
 def extract_metadata(text):
     # Ignorar linhas de cupom e o link subsequente para pegar os dados reais do produto
@@ -152,7 +163,7 @@ async def handler(event):
         db.close()
 
 async def fetch_retroactive(product_id: int):
-    print(f"Iniciando varredura retroativa para o produto [{product_id}]...")
+    logger.info(f"Iniciando varredura retroativa para o produto [{product_id}]...")
     db: Session = SessionLocal()
     try:
         watch = db.query(ProductWatch).filter(ProductWatch.id == product_id).first()
@@ -170,13 +181,13 @@ async def fetch_retroactive(product_id: int):
                     # process each message normally
                     await process_message(msg, db)
             except Exception as e:
-                print(f"Erro ao buscar retroativo no grupo {g.group_username_or_id}: {e}")
+                logger.error(f"Erro ao buscar retroativo no grupo {g.group_username_or_id}: {e}")
     finally:
         db.close()
-    print("Varredura retroativa concluída!")
+    logger.info("Varredura retroativa concluída!")
 
 async def fetch_all_retroactive():
-    print("Iniciando varredura retroativa global em todos os grupos...")
+    logger.info("Iniciando varredura retroativa global em todos os grupos...")
     db: Session = SessionLocal()
     try:
         watches = db.query(ProductWatch).filter(ProductWatch.is_active == True).all()
@@ -191,10 +202,10 @@ async def fetch_all_retroactive():
                 for msg in messages:
                     await process_message(msg, db)
             except Exception as e:
-                print(f"Erro ao buscar retroativo global no grupo {g.group_username_or_id}: {e}")
+                logger.error(f"Erro ao buscar retroativo global no grupo {g.group_username_or_id}: {e}")
     finally:
         db.close()
-    print("Varredura retroativa global concluída!")
+    logger.info("Varredura retroativa global concluída!")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -202,9 +213,9 @@ async def lifespan(app: FastAPI):
     await client.connect()
     # verify if logged in
     if not await client.is_user_authorized():
-        print("BOT NÃO AUTORIZADO! Por favor, rode 'python auth_telegram.py' primeiro.")
+        logger.error("BOT NÃO AUTORIZADO! Por favor, rode 'python auth_telegram.py' primeiro.")
     else:
-        print("Telethon Client Iniciado e Autenticado. Escutando mensagens...")
+        logger.info("Telethon Client Iniciado e Autenticado. Escutando mensagens...")
         asyncio.create_task(fetch_all_retroactive())
     
     yield
