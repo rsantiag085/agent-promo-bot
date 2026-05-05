@@ -1,10 +1,9 @@
 import os
+import sys
 import re
 import asyncio
-from datetime import datetime
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, HTTPException
-from typing import List
+from fastapi import FastAPI
 from dotenv import load_dotenv
 import uvicorn
 import logging
@@ -17,12 +16,11 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
-from telethon import TelegramClient, events
-from sqlalchemy.orm import Session
-from src.core.database import SessionLocal, ProductWatch, AlertLog, MonitoredGroup
+from telethon import TelegramClient, events  # noqa: E402
+from sqlalchemy.orm import Session  # noqa: E402
+from src.core.database import SessionLocal, ProductWatch, AlertLog, MonitoredGroup  # noqa: E402
 
 load_dotenv()
 
@@ -99,10 +97,10 @@ async def process_message(message, db: Session):
         if not is_monitored:
             return
             
-    except Exception as e:
+    except Exception:
         return
         
-    watches = db.query(ProductWatch).filter(ProductWatch.is_active == True).all()
+    watches = db.query(ProductWatch).filter(ProductWatch.is_active).all()
     text_lower = text.lower()
     
     for watch in watches:
@@ -145,7 +143,8 @@ async def process_message(message, db: Session):
                         None, 
                         lambda: requests.post(
                             f"https://api.telegram.org/bot{bot_token}/sendMessage",
-                            json={"chat_id": me.id, "text": msg_to_send, "parse_mode": "Markdown"}
+                            json={"chat_id": me.id, "text": msg_to_send, "parse_mode": "Markdown"},
+                            timeout=10
                         )
                     )
                 except Exception:
@@ -190,7 +189,7 @@ async def fetch_all_retroactive():
     logger.info("Iniciando varredura retroativa global em todos os grupos...")
     db: Session = SessionLocal()
     try:
-        watches = db.query(ProductWatch).filter(ProductWatch.is_active == True).all()
+        watches = db.query(ProductWatch).filter(ProductWatch.is_active).all()
         if not watches:
             return
             

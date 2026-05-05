@@ -51,7 +51,7 @@ with col1:
     st.header("🛒 Sua Watchlist (Máx 5)")
     st.caption("Adicione os produtos que deseja monitorar e as palavras-chave correspondentes.")
     
-    active_watches = db.query(ProductWatch).filter(ProductWatch.is_active == True).all()
+    active_watches = db.query(ProductWatch).filter(ProductWatch.is_active).all()
     
     if len(active_watches) < 5:
         with st.form("add_watch_form"):

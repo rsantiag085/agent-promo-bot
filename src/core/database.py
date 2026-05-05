@@ -3,7 +3,6 @@ from sqlalchemy import create_engine, Column, Integer, String, Boolean, DateTime
 from sqlalchemy.orm import declarative_base, sessionmaker
 from datetime import datetime
 
-import os
 
 # Garante que o diretório de dados exista
 os.makedirs("data", exist_ok=True)
