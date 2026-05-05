@@ -1,0 +1,7 @@
+telethon
+streamlit
+sqlalchemy
+fastapi
+uvicorn
+requests
+python-dotenv

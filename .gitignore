@@ -1,0 +1,17 @@
+# Ambientes virtuais e arquivos de ambiente
+venv/
+.env
+
+# Arquivos compilados do Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Dados do bot e banco de dados local
+database.sqlite
+session.session
+session.session-journal
+
+# Logs e outros
+*.log
+.DS_Store
