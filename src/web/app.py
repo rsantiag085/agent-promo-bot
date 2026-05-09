@@ -21,15 +21,17 @@ db = get_db()
 
 # --- Funções Auxiliares ---
 def check_bot_status():
+    bot_url = os.getenv("BOT_URL", "http://127.0.0.1:8090")
     try:
-        response = requests.get("http://127.0.0.1:8090/status", timeout=2)
+        response = requests.get(f"{bot_url}/status", timeout=2)
         return response.status_code == 200
     except requests.exceptions.RequestException:
         return False
 
 def trigger_retroactive(product_id):
+    bot_url = os.getenv("BOT_URL", "http://127.0.0.1:8090")
     try:
-        requests.post(f"http://127.0.0.1:8090/trigger_retroactive/{product_id}", timeout=3)
+        requests.post(f"{bot_url}/trigger_retroactive/{product_id}", timeout=3)
     except requests.exceptions.RequestException:
         pass # Falha silenciosa pra UI não quebrar se o bot estiver off
 

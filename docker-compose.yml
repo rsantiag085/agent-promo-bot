@@ -5,7 +5,25 @@ services:
     build: .
     container_name: agent_promo_bot
     restart: unless-stopped
+    ports:
+      - "8090:8090"
     env_file:
       - .env
     volumes:
       - ./data:/app/data
+
+  web:
+    build: .
+    container_name: agent_promo_web
+    restart: unless-stopped
+    command: streamlit run src/web/app.py --server.port=8501 --server.address=0.0.0.0
+    ports:
+      - "8501:8501"
+    env_file:
+      - .env
+    environment:
+      - BOT_URL=http://bot:8090
+    volumes:
+      - ./data:/app/data
+    depends_on:
+      - bot
